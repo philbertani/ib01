@@ -5,7 +5,7 @@ export default function PlaySpace({style}) {
   const styleFinal = {...style};
   styleFinal.backgroundColor = "red";
 
-  console.log("playSpace",styleFinal);
+  //console.log("playSpace",styleFinal);
 
   const debug = [window.devicePixelRatio, ",", window.innerHeight, ",", 
     window.screen.height,",",window.innerWidth,",",window.screen.width];

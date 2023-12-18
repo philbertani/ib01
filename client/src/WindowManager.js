@@ -10,16 +10,30 @@ export default function WindowManager( {mainScreenRef} ) {
   const [fullScreen,setFullScreen] = React.useState(false);
 
   React.useEffect( ()=>{
+
+
     function makeFullScreen() {
-      const elem = mainScreenRef.current;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
-      }   
-      setFullScreen(true);  
+
+      const isFullScreen = (window.innerWidth===window.screen.width && window.innerHeight===window.screen.height);
+
+      console.log("width",  window.innerWidth,window.screen.width);
+      console.log("height", window.innerHeight,window.screen.height);
+
+      if (!isFullScreen) {
+
+        console.log("fullScreen shite 2", document.fullscreenEnabled);
+        const elem = mainScreenRef.current;
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+          /* Safari */
+          elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          /* IE11 */
+          elem.msRequestFullscreen();
+        }
+        setFullScreen(true);
+      }
     }
     if (mainScreenRef.current && !fullScreen) {
       //touchstart fails with permission check when trying to fullscreen
@@ -28,13 +42,15 @@ export default function WindowManager( {mainScreenRef} ) {
       mainScreenRef.current.addEventListener("click",makeFullScreen);
 
     }
+
+
   },[mainScreenRef, fullScreen]);
 
 
   if (ws.dimData) {
 
-    console.log(ws);
-    console.log("pixel ratio",window.devicePixelRatio); //we dont need this yet
+    //console.log(ws);
+    //console.log("pixel ratio",window.devicePixelRatio); //we dont need this yet
 
     return (
       <div>
