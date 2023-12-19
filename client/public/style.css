@@ -8,3 +8,10 @@ html {
 * { margin: 0}
 
 * { word-break: break-all}
+
+/*
+always something uexpected with CSS, this time with setting transparent background for fullscreen
+https://stackoverflow.com/questions/16163089/background-element-goes-black-when-entering-fullscreen-with-html5*/
+:fullscreen, ::backdrop {
+  background-color: rgba(255,255,255,0);
+}
