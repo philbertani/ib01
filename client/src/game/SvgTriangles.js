@@ -2,7 +2,7 @@ import React from "react";
 
 const commonStyle = {position:"absolute"};
 
-const fillPct = "95%";
+const fillPct = "100%";
 
 export function RightTriangleLowerLeft({ color }) {
   //whatever is in the viewBox gets scaled to % of container - nice!
