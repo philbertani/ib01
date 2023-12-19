@@ -11,7 +11,6 @@ export default function WindowManager( {mainScreenRef} ) {
 
   React.useEffect( ()=>{
 
-
     function makeFullScreen() {
 
       const isFullScreen = (window.innerWidth===window.screen.width && window.innerHeight===window.screen.height);
@@ -49,7 +48,6 @@ export default function WindowManager( {mainScreenRef} ) {
 
   if (ws.dimData) {
 
-    //console.log(ws);
     //console.log("pixel ratio",window.devicePixelRatio); //we dont need this yet
 
     return (

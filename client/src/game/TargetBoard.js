@@ -1,10 +1,12 @@
 import React from "react";
 import * as SVGTRI from "./SvgTriangles";
 import {useStore} from "react-redux";
+import {boardInfos} from "./boardInfo";
+import Mechanics from "./Mechanics";
 
-const cellDivisor = 4.8;
-const spacingDivisor = 4.5;
-const boardInfo = {cols:4,rows:4};
+const boardInfo = boardInfos[3];
+
+const {cellDivisor,spacingDivisor} = boardInfo;
 
 export default function TargetBoard({style}) {
   
@@ -14,14 +16,17 @@ export default function TargetBoard({style}) {
   styleFinal.overflowY = "scroll";
 
   const [newBoard, setNewBoard] = React.useState([]);
-
+  
   const cellWidth = styleFinal.width/cellDivisor;
 
   const margin = .3*cellWidth;
   const spacing = styleFinal.width / spacingDivisor;
 
-
   React.useEffect(()=>{
+
+    //this is getting called multiple times - prevent with boolean
+
+    const mech = new Mechanics(boardInfo);
 
     //we have to call for this from server for multi player
     const board = [];
@@ -50,7 +55,7 @@ export default function TargetBoard({style}) {
     setNewBoard(board);
 
 
-  },[cellWidth])  //React suggestions ususally cause infinite rerendering hell - resist!
+  },[cellWidth, boardInfo])  //React suggestions ususally cause infinite rerendering hell - resist!
 
   return <div style={styleFinal}>{newBoard}</div>
 }
