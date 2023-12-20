@@ -2,8 +2,8 @@
 const boardInfo3x3 = {
   rows: 3,
   cols: 3,
-  cellDivisor: 3.8,
-  spacingDivisor: 3.5
+  cellDivisor: 3.65,    //3.8
+  spacingDivisor: 3.65  //3.5
 }
 
 const boardInfo4x4 = {

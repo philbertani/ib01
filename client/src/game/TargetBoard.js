@@ -5,7 +5,7 @@ import {boardInfos} from "./boardInfo";
 import Mechanics from "./Mechanics";
 
 const boardInfo = boardInfos[3];
-
+const mech = new Mechanics(boardInfo);
 const {cellDivisor,spacingDivisor} = boardInfo;
 
 export default function TargetBoard({style}) {
@@ -25,9 +25,6 @@ export default function TargetBoard({style}) {
   React.useEffect(()=>{
 
     //this is getting called multiple times - prevent with boolean
-
-    const mech = new Mechanics(boardInfo);
-
     //we have to call for this from server for multi player
     const board = [];
 
@@ -35,17 +32,22 @@ export default function TargetBoard({style}) {
 
       for (let col=0; col<boardInfo.cols; col++) {
 
+        const cell = mech.targetBoard[row][col];
+        const color1 = mech.vecToRGB(cell[0]);
+        const color2 = mech.vecToRGB(cell[1]);
+
         const newStyle={
           position:"absolute", width:cellWidth,
           left: margin+spacing*col,
           top: margin/2+spacing*row
         }
+
         board.push(
           <div key={"tile"+row.toString()+col.toString()} style={newStyle}>
-            <SVGTRI.Left boardDims={styleFinal} color={"rgba(0,255,0,.5)"}/>
-            <SVGTRI.Right boardDims={styleFinal} color={"rgba(0,255,0,.5)"}/>
-            <SVGTRI.Up boardDims={styleFinal} color={"rgba(255,0,255,.5)"}/>
-            <SVGTRI.Down boardDims={styleFinal} color={"rgba(255,0,255,.5)"}/>
+            <SVGTRI.Left boardDims={styleFinal} color={color1}/>
+            <SVGTRI.Right boardDims={styleFinal} color={color1}/>
+            <SVGTRI.Up boardDims={styleFinal} color={color2}/>
+            <SVGTRI.Down boardDims={styleFinal} color={color2}/>
           </div>
         )
 
