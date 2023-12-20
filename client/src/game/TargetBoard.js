@@ -11,7 +11,7 @@ const {cellDivisor,spacingDivisor} = boardInfo;
 export default function TargetBoard({style}) {
   
   const styleFinal = {...style};
-  styleFinal.backgroundColor = "rgba(255,255,255,0)";
+  styleFinal.backgroundColor = "rgba(0,0,0,1)";
   styleFinal.overflow = "hidden";
   styleFinal.overflowY = "scroll";
 

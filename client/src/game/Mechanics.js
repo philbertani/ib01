@@ -5,7 +5,7 @@ export default class Mechanics {
     [0, 0, 255],
 
     [255, 255, 0],   //add these to second level - it gets hard to distinguish
-    [0, 255, 255],
+    [0, 255, 255],   //maybe we should restrict to fully saturated colors??
     [255, 0, 255],
   ];
 
@@ -35,17 +35,20 @@ export default class Mechanics {
     }
     return sum;
   }
+
   avgVec(arr1, arr2) {
-    //just taking the average of 2 arrays
+    //not really the average
+    //if any of the individual RGB components sum to >  255 then we divide all RGB by 2
+
     let v3 = Array(arr1.length).fill(0);
 
-    let normalize = false;
+    let rescale = false;
     for (let i = 0; i < arr1.length; i++) {
       v3[i] = arr1[i] + arr2[i];
-      if (v3[i] > 255) normalize = true;
+      if (v3[i] > 255) rescale = true;
     }
 
-    if (normalize) {
+    if (rescale) {
       for (let i = 0; i < arr1.length; i++) {
         v3[i] /= 2;
       }
@@ -166,7 +169,7 @@ export default class Mechanics {
     const c1 = Math.trunc(Math.random() * N);
     let c2 = c1;
     let iter = 0;
-    while (c1 === c2 && iter < 10000) {
+    while (c1 === c2 && iter < 100) {
       c2 = Math.trunc(Math.random() * N);
     }
 
