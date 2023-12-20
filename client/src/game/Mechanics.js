@@ -2,13 +2,18 @@ export default class Mechanics {
   primaryColors = [
     [255, 0, 0],
     [0, 255, 0],
-    [0, 0, 255],
+    [0, 0, 255]
+  ]
 
+  
+
+  /*
     [127.5, 127.5, 0],
     [0, 127.5, 127.5],
     [127.5, 0, 127.5],
   ];
-
+  */
+ 
   /*
     [255, 255, 0],   //add these to second level - it gets hard to distinguish
     [0, 255, 255],   //maybe we should restrict to fully saturated colors??
@@ -69,6 +74,15 @@ export default class Mechanics {
     return v3;
   }
 
+  linearTo2d(index) {
+ 
+    const row = Math.trunc(index / this.boardInfo.cols);
+    const col = index - row * this.boardInfo.cols;
+
+    //console.log('zzzzzzz',index, row,  col);
+    return {cell:this.targetBoard[row][col],row,col};
+  }
+
   *boardIter(index, boardInfo) {
     //have the generator function convert from linear index to 2d array index for us
     while (index < boardInfo.rows * boardInfo.cols) {
@@ -80,6 +94,7 @@ export default class Mechanics {
     return;
   }
 
+  //this is more like reduce than map since it returns an accumulated array or object
   map(callback, accum=[]) {
     const cellIndex = this.boardIter(0,this.boardInfo);
     let end=false;

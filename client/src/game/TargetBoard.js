@@ -37,6 +37,10 @@ export default function TargetBoard({mech, style}) {
         top: margin / 2 + spacing * row,
       };
 
+      const debugStyle = {...newStyle};
+      debugStyle.backgroundColor="white";
+      debugStyle.width="fit-content";
+
       board.push(
         <div key={"tile" + row.toString() + col.toString()} style={newStyle}>
           <SVGTRI.Left boardDims={styleFinal} color={color1} />
@@ -45,6 +49,11 @@ export default function TargetBoard({mech, style}) {
           <SVGTRI.Down boardDims={styleFinal} color={color2} />
         </div>
       );
+
+      board.push(
+        <div key={"tileAdebug"+row.toString()+col.toString()} style={debugStyle}>{row}{col}</div>
+      )
+
 
       return null;
     }, board);

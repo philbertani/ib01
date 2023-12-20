@@ -9,7 +9,7 @@ import {boardInfos} from "./game/boardInfo";
 
 export default function WindowManager( {mainScreenRef} ) {
 
-  const boardInfo = boardInfos[3];
+  const boardInfo = boardInfos[2];
   const mechRef = React.useRef(new Mechanics(boardInfo));
   const mech = mechRef.current;
 
