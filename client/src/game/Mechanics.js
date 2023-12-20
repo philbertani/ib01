@@ -1,37 +1,67 @@
 export default class Mechanics {
+  targetBoard;
+  playSpaceBoard;
+
   primaryColors = [
     [255, 0, 0],
     [0, 255, 0],
-    [0, 0, 255]
+    [0, 0, 255],
   ]
-
-  
 
   /*
     [127.5, 127.5, 0],
     [0, 127.5, 127.5],
     [127.5, 0, 127.5],
-  ];
   */
  
   /*
-    [255, 255, 0],   //add these to second level - it gets hard to distinguish
-    [0, 255, 255],   //maybe we should restrict to fully saturated colors??
+    [255, 255, 0],
+    [0, 255, 255],
     [255, 0, 255],
-  ];
   */
 
   /*
-    [127.5,127.5,0],
-    [0,127.5,127.5],
-    [127.5,0,127.5],
-  
+    [255,127.5,0],
+    [255,0,127.5],
+    [127.5,0,255],
+    [0,127.5,255],
+    [127.5,255,0],
+    [0,255,127.5],  
   */
 
   constructor(boardInfo) {
     this.boardInfo = boardInfo;
     this.createBoard(this.boardInfo);
     return this;
+  }
+
+  setDebugStyle(styleIn, cellWidth) {
+    //assuming styleIn has left and top set
+    const style = {...styleIn};
+    style.backgroundColor="white";
+    style.width = cellWidth/3;
+    style.height = cellWidth/3;
+    style.left += cellWidth/2;
+    style.top += cellWidth/2;
+    style.textAlign = "center";
+    style.lineHeight = cellWidth/3 + "px"; 
+    style.transform = "translate(-50%,-50%)";
+    style.borderRadius = "50%";
+    style.fontSize = cellWidth/7;
+    style.background = "radial-gradient(white 40%,black)";
+    return style;
+  }
+
+  setOverlayStyle(styleIn, cellWidth) {
+    const style = {...styleIn};
+    style.backgroundColor = "rgba(255,255,255,0)";
+    style.height = cellWidth;
+    style.zIndex = 100;
+    //style.borderWidth = cellWidth/8;
+    //style.borderColor = "rgba(255,255,255,.5)";
+    style.background = "radial-gradient(transparent 50%, black)";
+    style.borderStyle = "solid";
+    return style;
   }
 
   colorDist(c1, c2) {
@@ -61,14 +91,18 @@ export default class Mechanics {
     let v3 = Array(arr1.length).fill(0);
 
     let rescale = false;
+    let max=-1;
+    let maxIndex;
     for (let i = 0; i < arr1.length; i++) {
       v3[i] = arr1[i] + arr2[i];
       if (v3[i] > 255) rescale = true;
+      if (v3[i] > max) { max=v3[i]; maxIndex=i}
     }
 
     if (rescale) {
+      const sf = 255/v3[maxIndex];
       for (let i = 0; i < arr1.length; i++) {
-        v3[i] /= 2;
+        v3[i] *= sf; ///= 2;
       }
     }
     return v3;
@@ -111,8 +145,10 @@ export default class Mechanics {
   createBoard(boardInfo) {
     //hard to remember this syntax:
     const newBoard = Array.from(Array(boardInfo.rows), () =>
-      Array(boardInfo.cols).fill(0)
-    );
+      Array(boardInfo.cols).fill(0));
+
+    this.playSpaceBoard = Array.from(Array(boardInfo.rows), () =>
+      Array(boardInfo.cols).fill(0));
 
     //boardIter returns the row,col of the board cell we will set
     const cell = this.boardIter(0, boardInfo);
@@ -135,7 +171,7 @@ export default class Mechanics {
 
         let iter = 0;
         while (
-          colorDist < 10 ||
+          colorDist < 50 ||
           (color1Sum >= white && color2Sum >= white && iter < 100)
         ) {
           [color1, color2, p1, p2] = this.chooseSecondaryColors(

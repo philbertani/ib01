@@ -26,6 +26,14 @@ export default function PlaySpace({mech, style}) {
     //we have to call for this from server for multi player
     const board = [];
 
+    const playSpaceBoard = mech.playSpaceBoard;  //keep track of the colors in each cell here
+
+    //have an object that points from a target square to its 2 sources
+    const sources = Array.from(Array(mech.boardInfo.rows), () =>
+      Array(mech.boardInfo.cols).fill(null));
+
+    console.log('yyyyyyyyyy',sources);
+
     //pick half of the total number of board cells because we need 2 squares to cover
     //one target square
     const N = boardInfo.rows*boardInfo.cols;
@@ -71,7 +79,7 @@ export default function PlaySpace({mech, style}) {
 
       const [p1,p2] = [cell[2],cell[3]];
 
-      debug.push(["start",row,col, outCol,outRow,outCol2,outRow2,"end "].join(","));
+      //debug.push(["start",row,col, outCol,outRow,outCol2,outRow2,"end "].join(","));
 
       const prim1a = mech.vecToRGB( mech.primaryColors[p1[0]] );
       const prim1b = mech.vecToRGB( mech.primaryColors[p1[1]] );
@@ -79,6 +87,14 @@ export default function PlaySpace({mech, style}) {
       const prim2a = mech.vecToRGB( mech.primaryColors[p2[0]] );
       const prim2b = mech.vecToRGB( mech.primaryColors[p2[1]] );
       
+      //we need these for the final comparison versus the target cells
+      //colors are always specified as: [horizontal,vertical]
+      playSpaceBoard[outRow][outCol] = {target:[row,col],prim:[p1[0],p2[0]]};  
+      playSpaceBoard[outRow2][outCol2] = {target:[row,col],prim:[p1[1],p2[1]]};
+
+      sources[row][col] = [[outRow,outCol],[outRow2,outCol2]];
+      console.log('sources',i,row,col,sources);
+
       const newStyle1={
         position:"absolute", width:cellWidth,
         left: margin+spacing*outCol,
@@ -92,12 +108,11 @@ export default function PlaySpace({mech, style}) {
       }
       //console.log(prim1a,prim1b,prim2a,prim2b);
 
-      const debugStyle1 = {...newStyle1};
-      const debugStyle2 = {...newStyle2};
-      debugStyle1.backgroundColor="white";
-      debugStyle1.width="fit-content";
-      debugStyle2.backgroundColor="white";
-      debugStyle2.width="fit-content";
+      const debugStyle1 = mech.setDebugStyle(newStyle1,cellWidth);
+      const debugStyle2 = mech.setDebugStyle(newStyle2,cellWidth);
+
+      const overlayStyle1 = mech.setOverlayStyle(newStyle1,cellWidth);
+      
 
       board.push(
         <div key={"tileA"+row.toString()+col.toString()} style={newStyle1}>
@@ -105,6 +120,11 @@ export default function PlaySpace({mech, style}) {
           <SVGTRI.Right boardDims={styleFinal} color={prim1a}/>
           <SVGTRI.Up boardDims={styleFinal} color={prim2a}/>
           <SVGTRI.Down boardDims={styleFinal} color={prim2a}/>
+        </div>
+      )
+
+      board.push(
+        <div key={"tileAoverlay"+row.toString()+col.toString()} style={overlayStyle1}>
         </div>
       )
 
@@ -126,6 +146,13 @@ export default function PlaySpace({mech, style}) {
       )
 
     }
+
+    console.log('playSpace', playSpaceBoard);
+  
+    mech.sources = sources;
+
+    console.log('pppppppp',mech.sources);
+
 
     setNewBoard(board);
     setDebug(debug);

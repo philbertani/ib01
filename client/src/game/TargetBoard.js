@@ -37,9 +37,7 @@ export default function TargetBoard({mech, style}) {
         top: margin / 2 + spacing * row,
       };
 
-      const debugStyle = {...newStyle};
-      debugStyle.backgroundColor="white";
-      debugStyle.width="fit-content";
+      const debugStyle = mech.setDebugStyle(newStyle, cellWidth);
 
       board.push(
         <div key={"tile" + row.toString() + col.toString()} style={newStyle}>
