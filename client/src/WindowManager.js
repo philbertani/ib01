@@ -4,7 +4,14 @@ import TargetBoard from "./game/TargetBoard";
 import PlaySpace from "./game/PlaySpace";
 import { useWindowSize } from "./uiHooks";
 
+import Mechanics from "./game/Mechanics";
+import {boardInfos} from "./game/boardInfo";
+
 export default function WindowManager( {mainScreenRef} ) {
+
+  const boardInfo = boardInfos[3];
+  const mechRef = React.useRef(new Mechanics(boardInfo));
+  const mech = mechRef.current;
 
   const ws = useWindowSize();
   const [fullScreen,setFullScreen] = React.useState(false);
@@ -45,7 +52,6 @@ export default function WindowManager( {mainScreenRef} ) {
 
   },[mainScreenRef, fullScreen]);
 
-
   if (ws.dimData) {
 
     //console.log("pixel ratio",window.devicePixelRatio); //we dont need this yet
@@ -53,8 +59,8 @@ export default function WindowManager( {mainScreenRef} ) {
     return (
       <div>
         <Menu style={ws.dimData.menu} />
-        <TargetBoard style={ws.dimData.board} />
-        <PlaySpace style={ws.dimData.play} />
+        <TargetBoard mech={mech} style={ws.dimData.board} />
+        <PlaySpace mech={mech} style={ws.dimData.play} />
       </div>
     );
   }

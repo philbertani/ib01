@@ -1,15 +1,12 @@
 import React from "react";
 import * as SVGTRI from "./SvgTriangles";
 import {useStore} from "react-redux";
-import {boardInfos} from "./boardInfo";
-import Mechanics from "./Mechanics";
 
-const boardInfo = boardInfos[3];
-const mech = new Mechanics(boardInfo);
-const {cellDivisor,spacingDivisor} = boardInfo;
-
-export default function TargetBoard({style}) {
+export default function TargetBoard({mech, style}) {
   
+  const boardInfo = mech.boardInfo;
+  const {cellDivisor,spacingDivisor} = mech.boardInfo;
+
   const styleFinal = {...style};
   styleFinal.backgroundColor = "rgba(0,0,0,1)";
   styleFinal.overflow = "hidden";

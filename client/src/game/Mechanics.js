@@ -4,22 +4,35 @@ export default class Mechanics {
     [0, 255, 0],
     [0, 0, 255],
 
+    [127.5, 127.5, 0],
+    [0, 127.5, 127.5],
+    [127.5, 0, 127.5],
+  ];
+
+  /*
     [255, 255, 0],   //add these to second level - it gets hard to distinguish
     [0, 255, 255],   //maybe we should restrict to fully saturated colors??
     [255, 0, 255],
   ];
+  */
 
   /*
-    [255,255,0],
-    [0,255,255],
-    [255,0,255],
+    [127.5,127.5,0],
+    [0,127.5,127.5],
+    [127.5,0,127.5],
   
   */
 
-  colorDist(c1,c2) {
-    let ss=0;  //sum of squared diffs - yeah
-    for (let i=0; i<3; i++) {
-      ss += (c1[i]-c2[i])*(c1[i]-c2[i]);
+  constructor(boardInfo) {
+    this.boardInfo = boardInfo;
+    this.createBoard(this.boardInfo);
+    return this;
+  }
+
+  colorDist(c1, c2) {
+    let ss = 0; //sum of squared diffs - yeah
+    for (let i = 0; i < 3; i++) {
+      ss += (c1[i] - c2[i]) * (c1[i] - c2[i]);
     }
     return Math.sqrt(ss);
   }
@@ -56,12 +69,6 @@ export default class Mechanics {
     return v3;
   }
 
-  constructor(boardInfo) {
-    this.boardInfo = boardInfo;
-    this.createBoard(this.boardInfo);
-    return this;
-  }
-
   *boardIter(index, boardInfo) {
     //have the generator function convert from linear index to 2d array index for us
     while (index < boardInfo.rows * boardInfo.cols) {
@@ -90,21 +97,26 @@ export default class Mechanics {
         const { row, col } = result.value;
         //pick 2 differnt "secondary" colors for each cell
 
-        let [color1, color2, p1, p2] = 
-          this.chooseSecondaryColors(this.primaryColors);
+        let [color1, color2, p1, p2] = this.chooseSecondaryColors(
+          this.primaryColors
+        );
         let color1Sum = this.sumVec(color1);
         let color2Sum = this.sumVec(color2);
-        let colorDist = this.colorDist(color1,color2);
+        let colorDist = this.colorDist(color1, color2);
         const white = 255 * 3;
 
         let iter = 0;
-        while (colorDist<10 || (color1Sum >= white && color2Sum >= white && iter<100)) {
-          [color1, color2, p1, p2] = 
-            this.chooseSecondaryColors(this.primaryColors);
+        while (
+          colorDist < 10 ||
+          (color1Sum >= white && color2Sum >= white && iter < 100)
+        ) {
+          [color1, color2, p1, p2] = this.chooseSecondaryColors(
+            this.primaryColors
+          );
           color1Sum = this.sumVec(color1);
           color2Sum = this.sumVec(color2);
-          colorDist = this.colorDist(color1,color2);
-          iter ++;
+          colorDist = this.colorDist(color1, color2);
+          iter++;
         }
 
         newBoard[row][col] = [color1, color2, p1, p2];
