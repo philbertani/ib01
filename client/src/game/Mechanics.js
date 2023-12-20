@@ -80,6 +80,19 @@ export default class Mechanics {
     return;
   }
 
+  map(callback, accum=[]) {
+    const cellIndex = this.boardIter(0,this.boardInfo);
+    let end=false;
+    while (!end) {
+      const result = cellIndex.next();
+      if (result.done) break;
+      const { row, col } = result.value;
+      const cell = this.targetBoard[row][col];
+      callback( {cell,row,col}, accum);
+    }  
+    return accum;
+  }
+
   createBoard(boardInfo) {
     //hard to remember this syntax:
     const newBoard = Array.from(Array(boardInfo.rows), () =>
