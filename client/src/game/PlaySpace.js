@@ -8,6 +8,11 @@ export default function PlaySpace({mech, style}) {
   const {cellDivisor,spacingDivisor} = mech.boardInfo;
 
   const styleFinal = {...style};
+
+  const cellWidth = styleFinal.width/cellDivisor;
+  const margin = .3*cellWidth;
+  const spacing = styleFinal.width / spacingDivisor;
+
   styleFinal.backgroundColor = "rgba(100,100,100,1)";
   styleFinal.overflow = "hidden";
   styleFinal.overflowY = "scroll";
@@ -16,23 +21,28 @@ export default function PlaySpace({mech, style}) {
   const [debug, setDebug] = React.useState(["debug"]);
   const [displayOverlay, setDisplayOverlay] = React.useState(false);
   
-  const cellWidth = styleFinal.width/cellDivisor;
-  const margin = .3*cellWidth;
-  const spacing = styleFinal.width / spacingDivisor;
-
   const computeSourcesRef = React.useRef(true);
   const orderRef = React.useRef();
   const cellsRef = React.useRef();
   const sourcesRef = React.useRef();
   const cellOrderRef = React.useRef();
+  const divRefs = React.useRef();
+
 
   //i dont trust react usestate for this:
   if (computeSourcesRef.current) {
+
     console.log("compute sources", boardInfo);
     //have an object that points from a target square to its 2 sources
     const sources = Array.from(Array(mech.boardInfo.rows), () =>
       Array(mech.boardInfo.cols).fill(null)
     );
+
+    if (!divRefs.current) {
+      divRefs.current = Array.from(Array(mech.boardInfo.rows), () =>
+        Array(mech.boardInfo.cols).fill(null)
+      );
+    }
 
     //pick half of the total number of board cells because we need 2 squares to cover
     //one target square
@@ -71,6 +81,8 @@ export default function PlaySpace({mech, style}) {
     computeSourcesRef.current = false;
   }
 
+  console.log('zzzzzzzzzzz',divRefs.current);
+
   React.useEffect(()=>{
 
     //this is getting called multiple times - prevent with boolean
@@ -87,6 +99,8 @@ export default function PlaySpace({mech, style}) {
     const cellOrder = cellOrderRef.current;
 
     const debug = [];
+
+    //console.log("divRefs",divRefs.current);
 
     for (let i=0; i<order.length; i++) {
 
@@ -120,12 +134,14 @@ export default function PlaySpace({mech, style}) {
         position:"absolute", width:cellWidth,
         left: margin+spacing*outCol,
         top: margin/2+spacing*outRow,
+        height: cellWidth
       }
 
       const newStyle2={
         position:"absolute", width:cellWidth,
         left: margin+spacing*outCol2,
-        top: margin/2+spacing*outRow2
+        top: margin/2+spacing*outRow2,
+        height: cellWidth
       }
       //console.log(prim1a,prim1b,prim2a,prim2b);
 
@@ -146,13 +162,18 @@ export default function PlaySpace({mech, style}) {
       }
 
       board.push(
-        <div id={outRow.toString() + outCol.toString()} key={"tileA"+row.toString()+col.toString()} style={newStyle1}>
-          <SVGTRI.Left boardDims={styleFinal} color={prim1a}/>
-          <SVGTRI.Right boardDims={styleFinal} color={prim1a}/>
-          <SVGTRI.Up boardDims={styleFinal} color={prim2a}/>
-          <SVGTRI.Down boardDims={styleFinal} color={prim2a}/>
+        <div
+          ref={(el) => (divRefs.current[outRow][outCol] = el)}
+          id={outRow.toString() + outCol.toString()}
+          key={"tileA" + row.toString() + col.toString()}
+          style={newStyle1}
+        >
+          <SVGTRI.Left boardDims={styleFinal} color={prim1a} />
+          <SVGTRI.Right boardDims={styleFinal} color={prim1a} />
+          <SVGTRI.Up boardDims={styleFinal} color={prim2a} />
+          <SVGTRI.Down boardDims={styleFinal} color={prim2a} />
         </div>
-      )
+      );
 
       board.push(
         <div key={"tileAoverlay"+row.toString()+col.toString()} style={overlayStyle1}>
@@ -164,13 +185,18 @@ export default function PlaySpace({mech, style}) {
       )
 
       board.push(
-        <div id={outRow2.toString() + outCol2.toString()} key={"tileB"+row.toString()+col.toString()} style={newStyle2}>
-          <SVGTRI.Left boardDims={styleFinal} color={prim1b}/>
-          <SVGTRI.Right boardDims={styleFinal} color={prim1b}/>
-          <SVGTRI.Up boardDims={styleFinal} color={prim2b}/>
-          <SVGTRI.Down boardDims={styleFinal} color={prim2b}/>
+        <div
+          ref={(el) => (divRefs.current[outRow2][outCol2] = el)}
+          id={outRow2.toString() + outCol2.toString()}
+          key={"tileB" + row.toString() + col.toString()}
+          style={newStyle2}
+        >
+          <SVGTRI.Left boardDims={styleFinal} color={prim1b} />
+          <SVGTRI.Right boardDims={styleFinal} color={prim1b} />
+          <SVGTRI.Up boardDims={styleFinal} color={prim2b} />
+          <SVGTRI.Down boardDims={styleFinal} color={prim2b} />
         </div>
-      )
+      );
 
       board.push(
         <div key={"tileBoverlay"+row.toString()+col.toString()} style={overlayStyle2}>
@@ -195,9 +221,44 @@ export default function PlaySpace({mech, style}) {
 
   },[cellWidth, boardInfo, displayOverlay])  //React suggestions ususally cause infinite rerendering hell - resist!
 
-  return ( 
-    <div> 
-      <div onClick={ev=>{ console.log(ev.target); setDisplayOverlay(!displayOverlay) }} style={styleFinal}>{newBoard}</div> 
-      <div style={{position:"absolute",color:"white",zIndex:100}}>{debug}</div>
-    </div>)
+  function checkCell(ev) {
+    const [x,y] = [ev.clientX, ev.clientY];
+    console.log(x,y);
+
+    let foundOne = false;
+    for (let row=0; row<boardInfo.rows; row++) {
+      for (let col=0; col<boardInfo.cols; col++) {
+        const cellInfo = divRefs.current[row][col];
+        console.log('ccccccccccccc',row,col,cellInfo);
+        if (!cellInfo) continue;
+        const rect = cellInfo.getBoundingClientRect();
+        console.log(x,y,rect.left,rect.right,rect.top,rect.bottom);
+        if ( x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
+          console.log("found it",cellInfo);
+          foundOne = true;
+          break;
+        }
+      }
+      if (foundOne) break;
+    }
+
+  }
+
+  return (
+    <div>
+      <div
+        onClick={(ev) => {
+          //console.log(ev.clientX, ev.clientY);
+          checkCell(ev);
+          //setDisplayOverlay(!displayOverlay);
+        }}
+        style={styleFinal}
+      >
+        {newBoard}
+      </div>
+      <div style={{ position: "absolute", color: "white", zIndex: 100 }}>
+        {debug}
+      </div>
+    </div>
+  );
 }
