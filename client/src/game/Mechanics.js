@@ -8,6 +8,7 @@ export default class Mechanics {
     [0, 0, 255],
     [0,0,0],
     [255,255,0],
+    [0,127.5,0]
     
   ]
 
@@ -59,7 +60,8 @@ export default class Mechanics {
     const style = {...styleIn};
     style.height = cellWidth;
     style.zIndex = 100;
-    style.background = "radial-gradient(transparent 50%, black)";
+    style.display = "hidden";
+    //style.background = "radial-gradient(transparent 50%, black)";
     return style;
   }
 
@@ -98,10 +100,11 @@ export default class Mechanics {
       if (v3[i] > max) { max=v3[i]; maxIndex=i}
     }
 
+    //have to really just allow it to saturate
     if (rescale) {
       const sf = 255/v3[maxIndex];
       for (let i = 0; i < arr1.length; i++) {
-        v3[i] *= sf; ///= 2;
+        //v3[i] *= sf; ///= 2;
       }
     }
     return v3;
