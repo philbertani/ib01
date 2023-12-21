@@ -341,7 +341,12 @@ export default function PlaySpace({mech, style}) {
 
         return;
       }
-    } 
+    }
+    
+    else if ( selectedRef.current.length === 2) {
+      setMergeCell({});
+      selectedRef.current.pop(); //get rid of the underlying one
+    }
 
     const [cellInfo, found] = whichCell(x, y, false);
 
