@@ -26,6 +26,8 @@ export default function PlaySpace({mech, style}) {
   const [displayOverlay, setDisplayOverlay] = React.useState(false);
   const [displayMerge, setDisplayMerge] = React.useState(false);
   const [moveCell, setMoveCell] = React.useState({});
+  const [mergeCell, setMergeCell] = React.useState({});
+
   
   const computeSourcesRef = React.useRef(true);
   const orderRef = React.useRef();
@@ -97,11 +99,11 @@ export default function PlaySpace({mech, style}) {
     computeSourcesRef.current = false;
   }
 
-  //console.log('zzzzzzzzzzz',divRefs.current);
-
+  /*
   React.useEffect( ()=>{
     console.log("we should be displaying the merge window");
   },[displayMerge]);
+  */
 
   React.useEffect(()=>{
 
@@ -120,9 +122,9 @@ export default function PlaySpace({mech, style}) {
 
     const debug = [];
 
-    //console.log("divRefs",divRefs.current);
-
     let checkSelected = false;
+    let checkMerge = false;
+
     let selectedRow, selectedCol, newTop, newLeft;
     if ( selectedRef.current.length === 1) {
       checkSelected = true;
@@ -137,9 +139,14 @@ export default function PlaySpace({mech, style}) {
           //newTop -= cellWidth/20;
         }
       } 
+    }
 
-
-  
+    else if ( selectedRef.current.length ===2) {
+      checkMerge = true;
+      selectedRow = moveCell.row;
+      selectedCol = moveCell.col;
+      newTop = mergeCell.y;
+      newLeft =  mergeCell.x;
     }
 
 
@@ -155,8 +162,6 @@ export default function PlaySpace({mech, style}) {
 
       const [p1,p2] = [cell[2],cell[3]];
 
-      //debug.push(["start",row,col, outCol,outRow,outCol2,outRow2,"end "].join(","));
-
       const prim1a = mech.vecToRGB( mech.primaryColors[p1[0]] );
       const prim1b = mech.vecToRGB( mech.primaryColors[p1[1]] );
 
@@ -169,7 +174,6 @@ export default function PlaySpace({mech, style}) {
       playSpaceBoard[outRow2][outCol2] = {target:[row,col],prim:[p1[1],p2[1]]};
 
       sources[row][col] = [[outRow,outCol],[outRow2,outCol2]];
-      //console.log('sources',i,row,col,sources);
 
       const newStyle1={
         position:"absolute", width:cellWidth,
@@ -184,7 +188,6 @@ export default function PlaySpace({mech, style}) {
         top: margin/2+spacing*outRow2,
         height: cellWidth
       }
-      //console.log(prim1a,prim1b,prim2a,prim2b);
 
       const debugStyle1 = mech.setDebugStyle(newStyle1,cellWidth);
       const debugStyle2 = mech.setDebugStyle(newStyle2,cellWidth);
@@ -192,13 +195,13 @@ export default function PlaySpace({mech, style}) {
       const overlayStyle1 = mech.setOverlayStyle(newStyle1,cellWidth);
       const overlayStyle2 = mech.setOverlayStyle(newStyle2,cellWidth);
 
-      if (checkSelected) {
+      if (checkSelected || checkMerge) {
         //newStyle1.opacity = .5; //opacity messes up the colors, mix-blend-mode fixes all
         newStyle1.mixBlendMode = "lighten"; //"screen"; //"difference";
         newStyle2.mixBlendMode = "lighten"; //"screen"; //"difference";
       }
 
-      if (checkSelected) {
+      if (checkSelected || checkMerge ) {
         if ( outRow == selectedRow && outCol == selectedCol) {
           newStyle1.top = newTop;
           newStyle1.left = newLeft;
@@ -232,7 +235,7 @@ export default function PlaySpace({mech, style}) {
         <div key={"tileAdebug"+row.toString()+col.toString()} style={debugStyle1}>{row}{col}</div>
       )
 
-      if (checkSelected) {
+      if (checkSelected || checkMerge) {
         if ( outRow2 == selectedRow && outCol2 == selectedCol) {
           newStyle2.top = newTop;
           newStyle2.left = newLeft;
@@ -268,48 +271,79 @@ export default function PlaySpace({mech, style}) {
 
     }
 
-    //console.log('playSpace', playSpaceBoard);
-  
     mech.sources = sources;
-
-    //console.log('pppppppp',mech.sources);
-
-
     setNewBoard(board);
     setDebug(debug);
 
-  },[cellWidth, boardInfo, displayOverlay, moveCell])  //React suggestions ususally cause infinite rerendering hell - resist!
+  },[cellWidth, boardInfo, displayOverlay, moveCell, mergeCell])  //React suggestions ususally cause infinite rerendering hell - resist!
 
 
-  function whichCell(x,y) {
-
-    for (let row=0; row<boardInfo.rows; row++) {
-      for (let col=0; col<boardInfo.cols; col++) {
+  function whichCell(x, y, moveFlag = false) {
+    for (let row = 0; row < boardInfo.rows; row++) {
+      for (let col = 0; col < boardInfo.cols; col++) {
         const cellInfo = divRefs.current[row][col];
         if (!cellInfo) continue;
         const rect = cellInfo.getBoundingClientRect();
-        if ( x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
-          console.log("found it",cellInfo);
-          return [cellInfo,true];
+        if (
+          x > rect.left &&
+          x < rect.right &&
+          y > rect.top &&
+          y < rect.bottom
+        ) {
+
+          //console.log("found it", cellInfo, moveCell);
+
+          const [row, col] = [
+            parseFloat(cellInfo.id.substring(0, 1)),
+            parseFloat(cellInfo.id.substring(1, 2)),
+          ];
+
+          const isMovingCell =
+            moveFlag &&
+            moveCell.hasOwnProperty("row") &&
+            row === moveCell.row &&
+            col === moveCell.col;
+
+          if (!isMovingCell) {
+            return [cellInfo, true, rect];
+          }
         }
       }
     }
 
-    return [null,false];
-
+    return [null, false];
   }
 
 
   function checkCell(ev) {
+
     ev.preventDefault();
 
     const [x, y] = [ev.clientX, ev.clientY];
     console.log(x, y);
 
-    //we are already moving a cell around
-    //if  (selectedRef.current.length > 0) return;
 
-    const [cellInfo, found] = whichCell(x, y);
+    if ( selectedRef.current.length === 1) {
+      //we have clicked while moving a cell - get the nearest cell and 
+      //overlay it exactly
+      const [cellInfo, found, rect] = whichCell(x,y, true);
+      if (found) {
+        const [row2, col2] = [
+          parseFloat(cellInfo.id.substring(0, 1)),
+          parseFloat(cellInfo.id.substring(1, 2)),
+        ];
+
+        const {row,col} = selectedRef.current[0];
+
+        console.log('attempting merge',row,col,rect);
+        setMergeCell({row2,col2,x:rect.left,y:rect.top});
+        selectedRef.current.push({row2,col2});
+
+        return;
+      }
+    } 
+
+    const [cellInfo, found] = whichCell(x, y, false);
 
     if (found) {
       console.log("found it", cellInfo);
@@ -338,6 +372,7 @@ export default function PlaySpace({mech, style}) {
         savedStyleRef.current = { ...style };
         selectedRef.current.push({ row, col });
         nearestCellRef.current = {};
+        setMergeCell({});
 
         setMoveCell({ row, col, x, y });
       }
@@ -364,15 +399,25 @@ export default function PlaySpace({mech, style}) {
 
   function moveCellFunc(ev,touch=null) {
     if  (selectedRef.current.length === 1) {
-
       let [x,y] = [ev.clientX, ev.clientY];
-
       if (touch) [x,y] = [touch.x,touch.y];
 
       const {row,col} = selectedRef.current[0];
-
       numMovesRef.current ++;
 
+      //for touch the div floats above the finger so we want
+      //to know what div the moving div is closest to so subtract off
+      //that amount that it floats above the finger
+      const [cellInfo,found, rect] = whichCell(x,y, true);
+
+      if (found) {
+        nearestCellRef.current = cellInfo; 
+      }
+      else {
+        nearestCellRef.current = null;
+      }
+
+      //console.log("moving",nearestCellRef.current);
       setMoveCell({row,col,x,y})
     }
   }
@@ -397,9 +442,11 @@ export default function PlaySpace({mech, style}) {
       >
         {newBoard}
       </div>
+
       <div style={{ position: "absolute", color: "white", zIndex: 100 }}>
         {debug}
       </div>
+
     </div>
   );
 }
