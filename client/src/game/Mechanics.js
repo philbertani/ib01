@@ -6,6 +6,9 @@ export default class Mechanics {
     [255, 0, 0],
     [0, 255, 0],
     [0, 0, 255],
+    [0,0,0],
+    [255,255,0],
+    
   ]
 
   /*
@@ -54,13 +57,12 @@ export default class Mechanics {
 
   setOverlayStyle(styleIn, cellWidth) {
     const style = {...styleIn};
-    style.backgroundColor = "rgba(255,255,255,0)";
     style.height = cellWidth;
     style.zIndex = 100;
     //style.borderWidth = cellWidth/8;
     //style.borderColor = "rgba(255,255,255,.5)";
     style.background = "radial-gradient(transparent 50%, black)";
-    style.borderStyle = "solid";
+    //style.borderStyle = "solid";
     return style;
   }
 

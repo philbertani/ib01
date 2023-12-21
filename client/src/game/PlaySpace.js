@@ -8,17 +8,68 @@ export default function PlaySpace({mech, style}) {
   const {cellDivisor,spacingDivisor} = mech.boardInfo;
 
   const styleFinal = {...style};
-  styleFinal.backgroundColor = "rgba(0,0,0,1)";
+  styleFinal.backgroundColor = "rgba(100,100,100,1)";
   styleFinal.overflow = "hidden";
   styleFinal.overflowY = "scroll";
 
   const [newBoard, setNewBoard] = React.useState([]);
   const [debug, setDebug] = React.useState(["debug"]);
+  const [displayOverlay, setDisplayOverlay] = React.useState(false);
   
   const cellWidth = styleFinal.width/cellDivisor;
-
   const margin = .3*cellWidth;
   const spacing = styleFinal.width / spacingDivisor;
+
+  const computeSourcesRef = React.useRef(true);
+  const orderRef = React.useRef();
+  const cellsRef = React.useRef();
+  const sourcesRef = React.useRef();
+  const cellOrderRef = React.useRef();
+
+  //i dont trust react usestate for this:
+  if (computeSourcesRef.current) {
+    console.log("compute sources", boardInfo);
+    //have an object that points from a target square to its 2 sources
+    const sources = Array.from(Array(mech.boardInfo.rows), () =>
+      Array(mech.boardInfo.cols).fill(null)
+    );
+
+    //pick half of the total number of board cells because we need 2 squares to cover
+    //one target square
+    const N = boardInfo.rows * boardInfo.cols;
+    const M = Math.trunc(N / 2);
+    const cellsToUse = {};
+    let num = 0;
+    while (num < M) {
+      const rnd = Math.trunc(Math.random() * N);
+      if (!cellsToUse[rnd]) {
+        cellsToUse[rnd] = Math.random() * 1000; //assign it a random sort order
+        num++;
+      }
+    }
+
+    const cells = Object.keys(cellsToUse);
+    const rndOrder = Object.values(cellsToUse);
+    const order = Array.from(cells, (x, i) => i);
+
+    order.sort((a, b) => rndOrder[a] - rndOrder[b]);
+
+    const Q = M * 2;
+    const rndCellOrder = [];
+    for (let i = 0; i < Q; i++) {
+      rndCellOrder.push(Math.random() * Q);
+    }
+
+    const cellOrder = Array.from(rndCellOrder, (x, i) => i);
+    cellOrder.sort((a, b) => rndCellOrder[a] - rndCellOrder[b]);
+
+    orderRef.current = order;
+    sourcesRef.current = sources;
+    cellsRef.current = cells;
+    cellOrderRef.current = cellOrder;
+
+    computeSourcesRef.current = false;
+  }
 
   React.useEffect(()=>{
 
@@ -27,43 +78,13 @@ export default function PlaySpace({mech, style}) {
     const board = [];
 
     const playSpaceBoard = mech.playSpaceBoard;  //keep track of the colors in each cell here
-
-    //have an object that points from a target square to its 2 sources
-    const sources = Array.from(Array(mech.boardInfo.rows), () =>
-      Array(mech.boardInfo.cols).fill(null));
-
-    console.log('yyyyyyyyyy',sources);
-
-    //pick half of the total number of board cells because we need 2 squares to cover
-    //one target square
     const N = boardInfo.rows*boardInfo.cols;
     const M = Math.trunc(N/2);
-    const cellsToUse = {};
-    let num=0;
-    while (num<M) {
-      const rnd = Math.trunc(Math.random()*N);
-      if ( !cellsToUse[rnd]) {
-        cellsToUse[rnd] = Math.random()*1000;  //assign it a random sort order
-        num++;
-      }
-    }
-    
-    const cells = Object.keys(cellsToUse);
-    const rndOrder = Object.values(cellsToUse);
-    const order = Array.from( cells, (x,i)=>i);
 
-    order.sort( (a,b)=> rndOrder[a]-rndOrder[b]);
-
-    const Q = M*2;
-    const rndCellOrder = []
-    for (let i=0; i<Q; i++) {
-      rndCellOrder.push(Math.random()*Q);
-    }
-
-    const cellOrder = Array.from(rndCellOrder,(x,i)=>i);
-    cellOrder.sort( (a,b)=>rndCellOrder[a]-rndCellOrder[b]);
-
-    console.log(order, cellOrder, rndCellOrder);
+    const order = orderRef.current;
+    const cells = cellsRef.current;
+    const sources = sourcesRef.current;
+    const cellOrder = cellOrderRef.current;
 
     const debug = [];
 
@@ -93,7 +114,7 @@ export default function PlaySpace({mech, style}) {
       playSpaceBoard[outRow2][outCol2] = {target:[row,col],prim:[p1[1],p2[1]]};
 
       sources[row][col] = [[outRow,outCol],[outRow2,outCol2]];
-      console.log('sources',i,row,col,sources);
+      //console.log('sources',i,row,col,sources);
 
       const newStyle1={
         position:"absolute", width:cellWidth,
@@ -112,10 +133,20 @@ export default function PlaySpace({mech, style}) {
       const debugStyle2 = mech.setDebugStyle(newStyle2,cellWidth);
 
       const overlayStyle1 = mech.setOverlayStyle(newStyle1,cellWidth);
+      const overlayStyle2 = mech.setOverlayStyle(newStyle2,cellWidth);
       
+      if (displayOverlay) {
+        overlayStyle1.display = "block";
+        overlayStyle2.display = "block";
+      } else {
+        overlayStyle1.display = "hidden";
+        overlayStyle1.background = "";
+        overlayStyle2.display = "hidden";
+        overlayStyle2.background = "";
+      }
 
       board.push(
-        <div key={"tileA"+row.toString()+col.toString()} style={newStyle1}>
+        <div id={outRow.toString() + outCol.toString()} key={"tileA"+row.toString()+col.toString()} style={newStyle1}>
           <SVGTRI.Left boardDims={styleFinal} color={prim1a}/>
           <SVGTRI.Right boardDims={styleFinal} color={prim1a}/>
           <SVGTRI.Up boardDims={styleFinal} color={prim2a}/>
@@ -133,11 +164,16 @@ export default function PlaySpace({mech, style}) {
       )
 
       board.push(
-        <div key={"tileB"+row.toString()+col.toString()} style={newStyle2}>
+        <div id={outRow2.toString() + outCol2.toString()} key={"tileB"+row.toString()+col.toString()} style={newStyle2}>
           <SVGTRI.Left boardDims={styleFinal} color={prim1b}/>
           <SVGTRI.Right boardDims={styleFinal} color={prim1b}/>
           <SVGTRI.Up boardDims={styleFinal} color={prim2b}/>
           <SVGTRI.Down boardDims={styleFinal} color={prim2b}/>
+        </div>
+      )
+
+      board.push(
+        <div key={"tileBoverlay"+row.toString()+col.toString()} style={overlayStyle2}>
         </div>
       )
 
@@ -147,21 +183,21 @@ export default function PlaySpace({mech, style}) {
 
     }
 
-    console.log('playSpace', playSpaceBoard);
+    //console.log('playSpace', playSpaceBoard);
   
     mech.sources = sources;
 
-    console.log('pppppppp',mech.sources);
+    //console.log('pppppppp',mech.sources);
 
 
     setNewBoard(board);
     setDebug(debug);
 
-  },[cellWidth, boardInfo])  //React suggestions ususally cause infinite rerendering hell - resist!
+  },[cellWidth, boardInfo, displayOverlay])  //React suggestions ususally cause infinite rerendering hell - resist!
 
   return ( 
     <div> 
-      <div style={styleFinal}>{newBoard}</div> 
+      <div onClick={ev=>{ console.log(ev.target); setDisplayOverlay(!displayOverlay) }} style={styleFinal}>{newBoard}</div> 
       <div style={{position:"absolute",color:"white",zIndex:100}}>{debug}</div>
     </div>)
 }
