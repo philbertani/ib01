@@ -1,9 +1,13 @@
 import React from "react";
 import * as SVGTRI from "./SvgTriangles";
 import {useStore} from "react-redux";
+import { useWindowSize } from "../uiHooks";
 
 export default function PlaySpace({mech, style}) {
   
+  const ws = useWindowSize();
+  const {isTouchDevice} = ws;
+
   const boardInfo = mech.boardInfo;
   const {cellDivisor,spacingDivisor} = mech.boardInfo;
 
@@ -32,6 +36,8 @@ export default function PlaySpace({mech, style}) {
   const overlayRefs = React.useRef();
   const selectedRef = React.useRef([]);
   const savedStyleRef = React.useRef();
+  const numMovesRef = React.useRef(0);
+  const nearestCellRef = React.useRef({});
 
   //i dont trust react usestate for this:
   if (computeSourcesRef.current) {
@@ -124,7 +130,18 @@ export default function PlaySpace({mech, style}) {
       selectedCol = moveCell.col;
       newTop = moveCell.y - cellWidth/2;
       newLeft = moveCell.x - cellWidth/2;
+      if (isTouchDevice) {
+        newTop -= cellWidth/1.8;
+
+        if (numMovesRef.current===1) {
+          //newTop -= cellWidth/20;
+        }
+      } 
+
+
+  
     }
+
 
     for (let i=0; i<order.length; i++) {
 
@@ -176,10 +193,9 @@ export default function PlaySpace({mech, style}) {
       const overlayStyle2 = mech.setOverlayStyle(newStyle2,cellWidth);
 
       if (checkSelected) {
-        //newStyle1.opacity = .5;
-        //newStyle2.opacity = .5;
-        newStyle1.mixBlendMode = "lighten"; //"screen"; //"lighten"; //"difference";
-        newStyle2.mixBlendMode = "lighten"; //"screen"; //"lighten"; //"difference";
+        //newStyle1.opacity = .5; //opacity messes up the colors, mix-blend-mode fixes all
+        newStyle1.mixBlendMode = "lighten"; //"screen"; //"difference";
+        newStyle2.mixBlendMode = "lighten"; //"screen"; //"difference";
       }
 
       if (checkSelected) {
@@ -187,7 +203,6 @@ export default function PlaySpace({mech, style}) {
           newStyle1.top = newTop;
           newStyle1.left = newLeft;
           newStyle1.zIndex = 1000;
-          //newStyle1.opacity = .5;
         }
       }
 
@@ -222,7 +237,6 @@ export default function PlaySpace({mech, style}) {
           newStyle2.top = newTop;
           newStyle2.left = newLeft;
           newStyle2.zIndex = 1000;
-          //newStyle2.opacity = .5;
         }
       }
 
@@ -266,80 +280,98 @@ export default function PlaySpace({mech, style}) {
 
   },[cellWidth, boardInfo, displayOverlay, moveCell])  //React suggestions ususally cause infinite rerendering hell - resist!
 
-  function checkCell(ev) {
 
+  function whichCell(x,y) {
+
+    for (let row=0; row<boardInfo.rows; row++) {
+      for (let col=0; col<boardInfo.cols; col++) {
+        const cellInfo = divRefs.current[row][col];
+        if (!cellInfo) continue;
+        const rect = cellInfo.getBoundingClientRect();
+        if ( x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
+          console.log("found it",cellInfo);
+          return [cellInfo,true];
+        }
+      }
+    }
+
+    return [null,false];
+
+  }
+
+
+  function checkCell(ev) {
     ev.preventDefault();
 
-    const [x,y] = [ev.clientX, ev.clientY];
-    console.log(x,y);
+    const [x, y] = [ev.clientX, ev.clientY];
+    console.log(x, y);
 
     //we are already moving a cell around
     //if  (selectedRef.current.length > 0) return;
 
-    let foundOne = false;
-    for (let row=0; row<boardInfo.rows; row++) {
-      for (let col=0; col<boardInfo.cols; col++) {
-        const cellInfo = divRefs.current[row][col];
-        //console.log('ccccccccccccc',row,col,cellInfo);
-        if (!cellInfo) continue;
-        const rect = cellInfo.getBoundingClientRect();
-        //console.log(x,y,rect.left,rect.right,rect.top,rect.bottom);
-        if ( x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
-          console.log("found it",cellInfo);
-          foundOne = true;
+    const [cellInfo, found] = whichCell(x, y);
 
-          const [row,col] = 
-            [ parseFloat(cellInfo.id.substring(0,1)), parseFloat(cellInfo.id.substring(1,2))];
-          
-          style = overlayRefs.current[row][col].style;
-          console.log("overlay", row,col, style.display );
+    if (found) {
+      console.log("found it", cellInfo);
 
-          if (style.display === "block") {
-            style.display = "";
-            style.background = null;
-          }
-          else  {
-            //style.display = "block";
-            //style.background = "radial-gradient(transparent 50%, black)";
-          }
+      const [row, col] = [
+        parseFloat(cellInfo.id.substring(0, 1)),
+        parseFloat(cellInfo.id.substring(1, 2)),
+      ];
 
-          if (selectedRef.current.length === 1) {
-            const sr = selectedRef.current[0];
-            const [selectedRow,selectedCol] = [sr.row,sr.col];
-            if ( selectedRow === row && selectedCol === col ) {
-              //we have clicked back in the original box so put it back
-              //console.log('kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk')
-              setMoveCell({});
-              selectedRef.current.length = 0;
-            }
-          }
-          else {
-          //save the initial style, position, etc so we can restore it to original
-            savedStyleRef.current = {...style};
-            selectedRef.current.push( {row,col} );
-          }
-          //if ( selectedRef.current.length === 2 ) {
-          //  setDisplayMerge(true);
-          //}
-          break;
+      //not using this right now
+      //overlayStyle = overlayRefs.current[row][col].style;
+
+      if (selectedRef.current.length === 1) {
+        const sr = selectedRef.current[0];
+        const [selectedRow, selectedCol] = [sr.row, sr.col];
+        if (selectedRow === row && selectedCol === col) {
+          //we have clicked back in the original box so put it back
+          setMoveCell({});
+          selectedRef.current.length = 0;
+          numMovesRef.current = 0;
         }
-      }
-      if (foundOne) break;
-    }
+      } else {
+        //save the initial style, position, etc so we can restore it to original
+        console.log("starting the move");
+        numMovesRef.current = 1;
+        savedStyleRef.current = { ...style };
+        selectedRef.current.push({ row, col });
+        nearestCellRef.current = {};
 
+        setMoveCell({ row, col, x, y });
+      }
+    }
   }
 
-  function moveCellFunc(ev) {
+  function processTouch(ev) {
+    ev.preventDefault();
+    if (ev.type==="touchend") {
+      //checkCell(ev,{x,y,type:"start"})
+      return;
+    }
+    const tch = ev.touches[0];
+    const [x,y] = [tch.clientX, tch.clientY];
+
+    if ( ev.type==="touchstart" ) {
+      checkCell(ev,{x,y});
+    }
+
+    else {
+      moveCellFunc(ev,{x,y});
+    }
+  }
+
+  function moveCellFunc(ev,touch=null) {
     if  (selectedRef.current.length === 1) {
+
+      let [x,y] = [ev.clientX, ev.clientY];
+
+      if (touch) [x,y] = [touch.x,touch.y];
+
       const {row,col} = selectedRef.current[0];
-      //console.log('moving',row,col);
 
-      const divRef = divRefs.current[row][col];
-      const [x,y] = [ev.clientX, ev.clientY];
-
-      //setting the style here is having no effect have to do it the hard way
-      //divRef.style.top = y;
-      //divRef.style.left = x;
+      numMovesRef.current ++;
 
       setMoveCell({row,col,x,y})
     }
@@ -349,13 +381,18 @@ export default function PlaySpace({mech, style}) {
     <div>
       <div
         onClick={(ev) => {
-          //console.log(ev.clientX, ev.clientY);
           checkCell(ev);
-          //setDisplayOverlay(!displayOverlay);
         }}
         onMouseMove={ ev=> {
           moveCellFunc(ev);
         }}
+        onTouchMove={ ev=> {
+          processTouch(ev);
+        }}
+        onTouchStart={ ev=> {
+          processTouch(ev);
+        }}
+ 
         style={styleFinal}
       >
         {newBoard}
