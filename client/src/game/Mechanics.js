@@ -59,10 +59,7 @@ export default class Mechanics {
     const style = {...styleIn};
     style.height = cellWidth;
     style.zIndex = 100;
-    //style.borderWidth = cellWidth/8;
-    //style.borderColor = "rgba(255,255,255,.5)";
     style.background = "radial-gradient(transparent 50%, black)";
-    //style.borderStyle = "solid";
     return style;
   }
 
