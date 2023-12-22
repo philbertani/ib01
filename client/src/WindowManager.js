@@ -15,6 +15,10 @@ export default function WindowManager( {mainScreenRef} ) {
 
   const ws = useWindowSize();
   const [fullScreen,setFullScreen] = React.useState(false);
+  const [showHints,setShowHints] = React.useState(false);
+
+  const [numMatches,setNumMatches] = React.useState(0);
+  const matchesRef = React.useRef([]);
 
   React.useEffect( ()=>{
 
@@ -52,15 +56,19 @@ export default function WindowManager( {mainScreenRef} ) {
 
   },[mainScreenRef, fullScreen]);
 
+  const props = {
+    mech, ws, showHints, setShowHints, matchesRef, numMatches, setNumMatches
+  }
+  
   if (ws.dimData) {
 
     //console.log("pixel ratio",window.devicePixelRatio); //we dont need this yet
 
     return (
       <div>
-        <Menu style={ws.dimData.menu} />
-        <TargetBoard mech={mech} style={ws.dimData.board} />
-        <PlaySpace mech={mech} style={ws.dimData.play} />
+        <Menu props={props} style={ws.dimData.menu} />
+        <TargetBoard props={props} style={ws.dimData.board} />
+        <PlaySpace props={props} style={ws.dimData.play} />
       </div>
     );
   }

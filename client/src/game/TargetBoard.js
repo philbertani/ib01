@@ -2,7 +2,10 @@ import React from "react";
 import * as SVGTRI from "./SvgTriangles";
 import {useStore} from "react-redux";
 
-export default function TargetBoard({mech, style}) {
+export default function TargetBoard({props, style}) {
+
+  const {mech, matchesRef, numMatches} = props;
+
   const boardInfo = mech.boardInfo;
   const { cellDivisor, spacingDivisor } = mech.boardInfo;
 
@@ -39,6 +42,16 @@ export default function TargetBoard({mech, style}) {
 
       const debugStyle = mech.setDebugStyle(newStyle, cellWidth);
 
+      console.log('zzzzzzzzzzzzzzzzzz',matchesRef.current);
+      for (let i=0; i<matchesRef.current.length; i++) {
+        const match = matchesRef.current[i];
+        if (row === match.row && col === match.col) {
+          newStyle.border = "10px solid white";
+          break;
+        }
+      }
+   
+
       board.push(
         <div key={"tile" + row.toString() + col.toString()} style={newStyle}>
           <SVGTRI.Left boardDims={styleFinal} color={color1} />
@@ -57,7 +70,7 @@ export default function TargetBoard({mech, style}) {
     }, board);
 
     setNewBoard(board);
-  }, [cellWidth, boardInfo]); //React suggestions ususally cause infinite rerendering hell - resist!
+  }, [cellWidth, boardInfo, numMatches]); //React suggestions ususally cause infinite rerendering hell - resist!
 
   return <div style={styleFinal}>{newBoard}</div>;
 }

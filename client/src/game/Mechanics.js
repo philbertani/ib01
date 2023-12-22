@@ -3,10 +3,18 @@ export default class Mechanics {
   playSpaceBoard;
 
   primaryColors = [
+    //trying to control relative frequencies by having multiple instances of some colors
+    [255, 0, 0],
+    [255, 0, 0],
     [255, 0, 0],
     [0, 255, 0],
+    [0, 255, 0],
+    [0, 255, 0],
+    [0, 0, 255],
+    [0, 0, 255],
     [0, 0, 255],
     [0,0,0],
+    [255,255,0],
     [255,255,0],
     [0,127.5,0]
     
@@ -53,6 +61,7 @@ export default class Mechanics {
     style.borderRadius = "50%";
     style.fontSize = cellWidth/7;
     style.background = "radial-gradient(white 40%,black)";
+    style.zIndex = 10000;
     return style;
   }
 
