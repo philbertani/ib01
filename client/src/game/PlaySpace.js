@@ -170,6 +170,8 @@ export default function PlaySpace({props, style}) {
     for (let i = 0; i < order.length; i++) {
       const index = order[i];
 
+      if (!cells[index]) continue;
+
       const { cell, row, col } = mech.linearTo2d(cells[index]);
       const {
         cell: cellx,
@@ -406,23 +408,46 @@ export default function PlaySpace({props, style}) {
     return false;
   }
 
+  function newRandomOrder(arr) {
+    //given an array of n elements, return a new array that is in random order
+    const rnd = [];
+    for (let i=0; i<arr.length; i++) {
+      rnd.push(Math.random());
+    }
+
+    const ord = Array.from(arr, (x,i)=>i);  //create new array with integers starting at 0
+
+    ord.sort( (a,b)=> rnd[a]-rnd[b]);
+
+    const newArr = [];
+    for (let i=0; i<ord.length; i++) {
+      newArr.push(arr[ord[i]]);
+    }
+
+    return newArr;
+
+  }
+
   function addNewSourcesAfterMatch(cellsToReplace) {
     //we need to replace 2 entries in the order array 
     const [cell1,cell2] = cellsToReplace;
-
-    console.log('xxxxxxxxxx', cellsToReplace);
 
     const cells = cellsRef.current;
     const finalTargets = finalTargetsRef.current;
     const index = cell1.orderIndex;
 
     if ( lastTargetIndexRef.current >= N ) {
-
+      cells[index] = null;
+      //the main loop will skip it 
     }
     else {
       cells[index] = finalTargets[lastTargetIndexRef.current];
       lastTargetIndexRef.current ++;
       setReplaceCells(prev=>prev++);
+
+      //we need to randomize the order of the playSpace or the user can just reuse the same
+      //2 slots that were replaced which are guaranteed to match
+      orderRef.current = newRandomOrder(orderRef.current);
 
     }
 
