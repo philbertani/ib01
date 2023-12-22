@@ -28,6 +28,8 @@ export default function PlaySpace({props, style}) {
   const [displayMerge, setDisplayMerge] = React.useState(false);
   const [moveCell, setMoveCell] = React.useState({});
   const [mergeCell, setMergeCell] = React.useState({});
+  const [mergedCellsMatch, setMergedCellsMatch] = React.useState(false);
+  const [replaceCells, setReplaceCells] = React.useState(0);
 
   const computeSourcesRef = React.useRef(true);
   const orderRef = React.useRef();
@@ -40,6 +42,10 @@ export default function PlaySpace({props, style}) {
   const savedStyleRef = React.useRef();
   const numMovesRef = React.useRef(0);
   const nearestCellRef = React.useRef({});
+  const lastTargetIndexRef = React.useRef(0);
+  const finalTargetsRef = React.useRef([]);
+
+  const N = boardInfo.rows * boardInfo.cols;
 
   //console.log('sr', selectedRef.current, selectedRef.current.length);
 
@@ -65,16 +71,29 @@ export default function PlaySpace({props, style}) {
 
     //pick half of the total number of board cells because we need 2 squares to cover
     //one target square
-    const N = boardInfo.rows * boardInfo.cols;
+
     const M = Math.trunc(N / 2);
     const cellsToUse = {};
-    let num = 0;
-    while (num < M) {
-      const rnd = Math.trunc(Math.random() * N);
-      if (!cellsToUse[rnd]) {
-        cellsToUse[rnd] = Math.random() * 1000; //assign it a random sort order
-        num++;
-      }
+
+    const cellsRnd = {};
+    for  (let i=0; i<N; i++) {
+      cellsRnd[i] = Math.random()*N;
+    }
+    const keys = Object.keys(cellsRnd);
+    const rnd = Object.values(cellsRnd);
+    const ord = Array.from(keys, (x, i) => i);
+    ord.sort( (a,b)=> rnd[a]-rnd[b]);
+
+    const finalTargets = []; 
+    for (let i=0; i<ord.length; i++) {
+      finalTargets.push(keys[ord[i]]);
+    }
+    console.log('final random order', finalTargets);
+    lastTargetIndexRef.current=M;
+    finalTargetsRef.current = finalTargets;
+
+    for (let i=0; i<M; i++) {
+      cellsToUse[finalTargets[i]] = Math.random()*1000;
     }
 
     const cells = Object.keys(cellsToUse);
@@ -107,6 +126,7 @@ export default function PlaySpace({props, style}) {
   */
 
   React.useEffect(() => {
+
     //this is getting called multiple times - prevent with boolean
     //we have to call for this from server for multi player
     const board = [];
@@ -177,10 +197,12 @@ export default function PlaySpace({props, style}) {
       playSpaceBoard[outRow][outCol] = {
         target: [row, col],
         prim: [p1[0], p2[0]],
+        orderIndex: index
       };
       playSpaceBoard[outRow2][outCol2] = {
         target: [row, col],
         prim: [p1[1], p2[1]],
+        orderIndex: index
       };
 
       sources[row][col] = [
@@ -303,7 +325,14 @@ export default function PlaySpace({props, style}) {
     setNewBoard(board);
     setDebug(debug);
 
-  }, [cellWidth, boardInfo, displayOverlay, moveCell, mergeCell, showHints]); //React suggestions ususally cause infinite rerendering hell - resist!
+  }, [cellWidth,
+      boardInfo,
+      displayOverlay,
+      moveCell,
+      mergeCell,
+      showHints,
+     ]
+  ); //React suggestions ususally cause infinite rerendering hell - resist!
 
   function whichCell(x, y, moveFlag = false) {
     for (let row = 0; row < boardInfo.rows; row++) {
@@ -360,15 +389,47 @@ export default function PlaySpace({props, style}) {
 
     //stupid mixing {row,col} with [row,col]
     if (target1[0] === target2[0] && target1[1] === target2[1]) {
-      console.log("found a fucking match, yehh", target1);
+      console.log("found a match, yehh", target1);
 
       matchesRef.current.push( { row: target1[0], col: target1[1] }  );
+
       setNumMatches(prev=>prev+1);
+
+      setTimeout( ()=>{
+        addNewSourcesAfterMatch([boardCell1,boardCell2]);
+      },1000);
+
 
       return true;
     }
 
     return false;
+  }
+
+  function addNewSourcesAfterMatch(cellsToReplace) {
+    //we need to replace 2 entries in the order array 
+    const [cell1,cell2] = cellsToReplace;
+
+    console.log('xxxxxxxxxx', cellsToReplace);
+
+    const cells = cellsRef.current;
+    const finalTargets = finalTargetsRef.current;
+    const index = cell1.orderIndex;
+
+    if ( lastTargetIndexRef.current >= N ) {
+
+    }
+    else {
+      cells[index] = finalTargets[lastTargetIndexRef.current];
+      lastTargetIndexRef.current ++;
+      setReplaceCells(prev=>prev++);
+
+    }
+
+    setMoveCell({});
+    selectedRef.current = [];
+    numMovesRef.current = 0;
+
   }
 
   function checkCell(ev) {

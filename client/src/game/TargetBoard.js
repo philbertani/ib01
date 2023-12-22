@@ -42,11 +42,11 @@ export default function TargetBoard({props, style}) {
 
       const debugStyle = mech.setDebugStyle(newStyle, cellWidth);
 
-      console.log('zzzzzzzzzzzzzzzzzz',matchesRef.current);
+      //console.log('zzzzzzzzzzzzzzzzzz',matchesRef.current);
       for (let i=0; i<matchesRef.current.length; i++) {
         const match = matchesRef.current[i];
         if (row === match.row && col === match.col) {
-          newStyle.border = "10px solid white";
+          newStyle.border = "20px solid transparent";
           break;
         }
       }
