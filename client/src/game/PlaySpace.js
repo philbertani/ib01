@@ -441,6 +441,10 @@ export default function PlaySpace({props, style}) {
       //the main loop will skip it 
     }
     else {
+
+
+      console.log('aaaaaaaaaa', orderRef.current, cells, cellOrderRef.current);
+
       cells[index] = finalTargets[lastTargetIndexRef.current];
       lastTargetIndexRef.current ++;
       setReplaceCells(prev=>prev++);
@@ -448,6 +452,12 @@ export default function PlaySpace({props, style}) {
       //we need to randomize the order of the playSpace or the user can just reuse the same
       //2 slots that were replaced which are guaranteed to match
       orderRef.current = newRandomOrder(orderRef.current);
+
+      cellsRef.current = newRandomOrder(cellsRef.current);
+
+      cellOrderRef.current = newRandomOrder(cellOrderRef.current);
+      
+      console.log('bbbbbbbbbbb', orderRef.current, cells, cellOrderRef.current);
 
     }
 
