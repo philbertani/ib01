@@ -30,6 +30,8 @@ export default function PlaySpace({props, style}) {
   const [mergeCell, setMergeCell] = React.useState({});
   const [mergedCellsMatch, setMergedCellsMatch] = React.useState(false);
   const [replaceCells, setReplaceCells] = React.useState(0);
+  const [animateBackground, setAnimateBackground] = React.useState(0);
+  const [animateColor, setAnimateColor] = React.useState("white");
 
   const computeSourcesRef = React.useRef(true);
   const orderRef = React.useRef();
@@ -44,6 +46,7 @@ export default function PlaySpace({props, style}) {
   const nearestCellRef = React.useRef({});
   const lastTargetIndexRef = React.useRef(0);
   const finalTargetsRef = React.useRef([]);
+  const startAnimationRef = React.useRef(false);
 
   const N = boardInfo.rows * boardInfo.cols;
 
@@ -401,6 +404,8 @@ export default function PlaySpace({props, style}) {
         addNewSourcesAfterMatch([boardCell1,boardCell2]);
       },1000);
 
+      setAnimateBackground(0);
+      startAnimationRef.current = true;
 
       return true;
     }
@@ -441,7 +446,6 @@ export default function PlaySpace({props, style}) {
       //the main loop will skip it 
     }
     else {
-
 
       console.log('aaaaaaaaaa', orderRef.current, cells, cellOrderRef.current);
 
@@ -581,7 +585,7 @@ export default function PlaySpace({props, style}) {
   }
 
   return (
-    <div>
+    <div style={{backgroundColor:animateColor}}>
       <div
         onClick={(ev) => {
           checkCell(ev);
